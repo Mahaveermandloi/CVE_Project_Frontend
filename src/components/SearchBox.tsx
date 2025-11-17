@@ -1,4 +1,6 @@
 import { Search, Filter, Download } from "lucide-react";
+import { useState } from "react";
+import { exportCveChangesToExcel } from "../pages/api/APICalls"; // make sure this is imported
 
 interface SearchBoxProps {
   search: string;
@@ -6,6 +8,9 @@ interface SearchBoxProps {
   onSearchClick: () => void;
   onFilterClick?: () => void;
   appliedFilterCount?: number; // NEW
+  selectedEvents?: string[]; // added to pass filters
+  startDate?: string;
+  endDate?: string;
 }
 
 export default function SearchBox({
@@ -14,9 +19,27 @@ export default function SearchBox({
   onSearchClick,
   onFilterClick,
   appliedFilterCount = 0,
+  selectedEvents = [],
+  startDate,
+  endDate,
 }: SearchBoxProps) {
+  const [loading, setLoading] = useState(false); // added loader state
   const isDisabled = search.trim().length === 0;
   const isFilterApplied = appliedFilterCount > 0;
+
+  const handleExport = async () => {
+    try {
+      setLoading(true); // show loader
+      alert("done");
+      await exportCveChangesToExcel(selectedEvents, startDate, endDate);
+      alert("Excel file exported successfully");
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Failed to export Excel file");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex items-center gap-3">
@@ -37,13 +60,11 @@ export default function SearchBox({
         type="button"
         disabled={isDisabled}
         onClick={onSearchClick}
-        className={`flex items-center gap-2 px-4 py-2 border rounded-lg 
-          ${
-            isDisabled
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "hover:bg-black bg-gray-600 text-white"
-          }
-        `}
+        className={`flex items-center gap-2 px-4 py-2 border rounded-lg ${
+          isDisabled
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "hover:bg-black bg-gray-600 text-white"
+        }`}
       >
         <Search size={22} />
       </button>
@@ -65,11 +86,13 @@ export default function SearchBox({
       {/* Export Button */}
       <button
         type="button"
-        className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-blue-800 
-          ${isFilterApplied ? "bg-blue-600 text-white" : "bg-white text-black"}
-        `}
+        disabled={loading}
+        onClick={handleExport}
+        className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-blue-800 ${
+          isFilterApplied ? "bg-blue-600 text-white" : "bg-white text-black"
+        }`}
       >
-        <Download size={16} /> Export
+        <Download size={16} /> {loading ? "Exporting..." : "Export"}
       </button>
     </div>
   );

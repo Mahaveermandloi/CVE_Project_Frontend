@@ -197,6 +197,9 @@ export default function Dashboard() {
             (filterCriteria.startDate ? 1 : 0) +
             (filterCriteria.endDate ? 1 : 0)
           }
+          selectedEvents={filterCriteria.events}
+          startDate={filterCriteria.startDate}
+          endDate={filterCriteria.endDate}
         />
       </div>
 
@@ -221,7 +224,6 @@ export default function Dashboard() {
         rowsPerPage={rowsPerPage}
         currentPage={currentPage}
         totalResults={apiData?.totalResults || 0}
-
         onPageChange={(_, p) => {
           setLoading(true);
           setCurrentPage(p);
