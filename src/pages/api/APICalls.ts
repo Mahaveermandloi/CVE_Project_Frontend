@@ -43,14 +43,22 @@ export interface PaginatedChangeRecord {
   details: any[];
 }
 
+
+
+
 export interface PaginatedApiResponse {
-  isSearchResult: any;
   resultsPerPage: number;
   startIndex: number;
   totalResults: number;
   timestamp: string;
   data: PaginatedChangeRecord[];
+
+  // optional UI flags
+  isSearchResult?: boolean;
+  isFilterResult?: boolean;
 }
+
+
 
 /* ----------------------------------------------------
    🔹 GET ONE — /cvechanges/{id}/
@@ -139,5 +147,33 @@ export const searchCveChanges = async (
   return response.data;
 };
 
+
+
+
+/* ----------------------------------------------------
+   🔹 FILTER — /cvechanges/filter/?event=...&startDate=...&endDate=...
+---------------------------------------------------- */
+export const filterCveChanges = async (
+  events: string[] = [],
+  startDate?: string, // format YYYY-MM-DD
+  endDate?: string,
+  resultsPerPage: number = 500,
+  startIndex: number = 0
+): Promise<PaginatedApiResponse> => {
+  const params = new URLSearchParams();
+  params.set("resultsPerPage", String(resultsPerPage));
+  params.set("startIndex", String(startIndex));
+
+  // append events as repeated 'event' params
+  // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
+    events.forEach((e) => params.append("event", e));
+
+  if (startDate) params.set("startDate", startDate);
+  if (endDate) params.set("endDate", endDate);
+
+  const url = `${API_BASE}/cvechanges/filter/?${params.toString()}`;
+  const response = await axios.get(url);
+  return response.data;
+};
 
 
