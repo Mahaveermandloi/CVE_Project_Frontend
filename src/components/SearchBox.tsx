@@ -1,5 +1,3 @@
-
-
 import { Search, Filter, Download } from "lucide-react";
 
 interface SearchBoxProps {
@@ -18,6 +16,7 @@ export default function SearchBox({
   appliedFilterCount = 0,
 }: SearchBoxProps) {
   const isDisabled = search.trim().length === 0;
+  const isFilterApplied = appliedFilterCount > 0;
 
   return (
     <div className="flex items-center gap-3">
@@ -56,7 +55,6 @@ export default function SearchBox({
         className="relative flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-100"
       >
         <Filter size={16} /> Filter
-
         {appliedFilterCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {appliedFilterCount}
@@ -67,7 +65,9 @@ export default function SearchBox({
       {/* Export Button */}
       <button
         type="button"
-        className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-100"
+        className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-blue-800 
+          ${isFilterApplied ? "bg-blue-600 text-white" : "bg-white text-black"}
+        `}
       >
         <Download size={16} /> Export
       </button>

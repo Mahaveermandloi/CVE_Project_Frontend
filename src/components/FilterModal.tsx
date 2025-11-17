@@ -1,7 +1,5 @@
-
-
-
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 type Props = {
   open: boolean;
@@ -12,7 +10,7 @@ type Props = {
     endDate?: string;
   }) => void;
 
-  // NEW — initial filter values from Dashboard
+  // initial filter values from Dashboard
   initialEvents: string[];
   initialStartDate?: string;
   initialEndDate?: string;
@@ -43,11 +41,12 @@ export default function FilterModal({
   initialStartDate,
   initialEndDate,
 }: Props) {
+  const router = useRouter();
+
   const [selectedEvents, setSelectedEvents] = useState<string[]>(initialEvents);
   const [startDate, setStartDate] = useState<string>(initialStartDate || "");
   const [endDate, setEndDate] = useState<string>(initialEndDate || "");
 
-  // Sync filter values when modal opens
   useEffect(() => {
     if (open) {
       setSelectedEvents(initialEvents);
@@ -63,7 +62,6 @@ export default function FilterModal({
   };
 
   const apply = () => {
-    // If only a start date is given, use it for end date too
     if (startDate && !endDate) setEndDate(startDate);
 
     onApply({
@@ -75,6 +73,19 @@ export default function FilterModal({
     onClose();
   };
 
+  const clearFilters = () => {
+    setSelectedEvents([]);
+    setStartDate("");
+    setEndDate("");
+
+    onApply({
+      events: [],
+      startDate: undefined,
+      endDate: undefined,
+    });
+
+    onClose();
+  };
   if (!open) return null;
 
   return (
@@ -86,7 +97,7 @@ export default function FilterModal({
           {/* Event Filter */}
           <div>
             {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="block font-medium mb-2">Event Name</label>
+            <label className="block font-medium mb-2">Event Name</label>
             <div className="max-h-40 overflow-y-auto border rounded p-2">
               {EVENT_OPTIONS.map((ev) => (
                 <label key={ev} className="flex items-center gap-2 mb-1">
@@ -108,7 +119,7 @@ export default function FilterModal({
           {/* Date Range Filter */}
           <div>
             {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="block font-medium mb-2">Date range</label>
+            <label className="block font-medium mb-2">Date range</label>
             <div className="flex items-center gap-2">
               <div>
                 <div className="text-xs text-gray-600">Start</div>
@@ -138,23 +149,33 @@ export default function FilterModal({
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="mt-4 flex justify-between items-center ">
           <button
             type="button"
-            className="px-4 py-2 rounded border"
-            onClick={onClose}
+            className="px-4 py-2 rounded border bg-gray-200"
+            onClick={clearFilters}
           >
-            Close
+            Clear Filters
           </button>
 
-          <button
-            type="button"
-            className="px-4 py-2 rounded bg-blue-600 text-white"
-            onClick={apply}
-          >
-            Apply
-          </button>
+          {/* Buttons */}
+          <div className="flex  gap-3 ">
+            <button
+              type="button"
+              className="px-4 py-2 rounded border"
+              onClick={onClose}
+            >
+              Close
+            </button>
+
+            <button
+              type="button"
+              className="px-4 py-2 rounded bg-blue-600 text-white"
+              onClick={apply}
+            >
+              Apply
+            </button>
+          </div>
         </div>
       </div>
     </div>
