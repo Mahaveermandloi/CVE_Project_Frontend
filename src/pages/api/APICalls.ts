@@ -176,56 +176,60 @@ export const filterCveChanges = async (
   return response.data;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ----------------------------------------------------
    🔹 EXPORT FILTERED DATA TO EXCEL
 ---------------------------------------------------- */
 export const exportCveChangesToExcel = async (
   events: string[] = [],
-  startDate?: string, // format YYYY-MM-DD
+  startDate?: string,
   endDate?: string
 ) => {
+  // Build filter summary string
+  let filterSummary = "";
+  if (events.length || startDate || endDate) {
+    filterSummary += "Filters selected:\n";
+    if (events.length) filterSummary += `• Events: ${events.join(", ")}\n`;
+    if (startDate) filterSummary += `• Start Date: ${startDate}\n`;
+    if (endDate) filterSummary += `• End Date: ${endDate}\n`;
+  } else {
+    filterSummary = "No filters are applied.";
+  }
+
+  // Show prompt with confirmation
+  const confirmMessage = `${filterSummary}\n\nThis export may take a while. Do you want to continue?`;
+  const proceed = window.confirm(confirmMessage);
+  if (!proceed) return false; // user canceled
+
+  // Build query params
   const params = new URLSearchParams();
-
-  // append events as repeated 'event' params
   // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
-    events.forEach((e) => params.append("event", e));
-
+  events.forEach((e) => params.append("event", e));
   if (startDate) params.set("startDate", startDate);
   if (endDate) params.set("endDate", endDate);
 
-
-  
-
   const url = `${API_BASE}/cvechanges/export/?${params.toString()}`;
 
-  alert(url);
+  try {
+    // axios GET request with responseType 'blob' for Excel
+    const response = await axios.get(url, { responseType: "blob" });
 
-  // axios GET request with responseType 'blob' for Excel
-  const response = await axios.get(url, { responseType: "blob" });
+    // create a downloadable link
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const link = document.createElement("a");
+    const filename = `CVE_Changes_${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "_")}.xlsx`;
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
 
-  // create a downloadable link
-  const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  const link = document.createElement("a");
-  const filename = `CVE_Changes_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'_')}.xlsx`;
-  link.href = window.URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-
-  return true;
+    return true;
+  } catch (err) {
+    console.error("Export failed:", err);
+    alert("Failed to export Excel file");
+    return false;
+  }
 };
-
