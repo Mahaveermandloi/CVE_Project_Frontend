@@ -44,30 +44,34 @@ export default function SearchBox({
   return (
     <div className="flex items-center gap-3">
       {/* Input */}
-      <div className="flex items-center gap-2 px-3 py-2 border rounded-lg bg-gray-50 w-96">
-        <Search size={18} className="text-gray-500" />
-        <input
-          type="text"
-          placeholder="Search here via CVE ID, ChangeID ,Source..."
-          className="bg-transparent outline-none w-full text-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
 
-      {/* Search Button */}
-      <button
-        type="button"
-        disabled={isDisabled}
-        onClick={onSearchClick}
-        className={`flex items-center gap-2 px-4 py-2 border rounded-lg ${
-          isDisabled
-            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-            : "hover:bg-black bg-gray-600 text-white"
-        }`}
-      >
-        <Search size={22} />
-      </button>
+      <div className="flex">
+        <div className="flex items-center gap-2 px-3 py-2 border  rounded-l-lg bg-gray-50 w-96">
+          <Search size={18} className="text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search here via CVE ID, ChangeID ,Source..."
+            className="bg-transparent outline-none w-full text-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Search Button */}
+        <button
+          type="button"
+          disabled={isDisabled}
+          onClick={onSearchClick}
+          className={`flex items-center gap-2 px-4 py-2 border rounded-r-lg ${
+            isDisabled
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "hover:cursor-pointer hover:bg-blue-700 bg-[#01308b] text-white"
+          }`}
+        >
+          <Search size={23} />
+        </button>
+      </div>
+      
 
       {/* Filter Button with Badge */}
       <button
@@ -89,7 +93,7 @@ export default function SearchBox({
         disabled={loading}
         onClick={handleExport}
         className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-blue-800 ${
-          isFilterApplied ? "bg-blue-600 text-white" : "bg-white text-black"
+          isFilterApplied ? "bg-[#01308b] text-white" : "bg-white text-black"
         }`}
       >
         <Download size={16} /> {loading ? "Exporting..." : "Export"}

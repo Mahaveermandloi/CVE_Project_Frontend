@@ -6,12 +6,12 @@ export default function Navbar() {
   const current = router.pathname;
 
   return (
-    <nav className="flex gap-5 p-4 bg-white ">
+    <nav className="flex gap-5 p-4 bg-[#01308b]  ">
       <Link
         href="/dashboard"
         className={`text-lg pb-1 ${
           current === "/dashboard"
-            ? "text-black border-b-2 border-black"
+            ? "text-white border-b-2 font-bold "
             : "text-gray-500"
         }`}
       >
@@ -22,7 +22,7 @@ export default function Navbar() {
         href="/graph"
         className={`text-lg pb-1 ${
           current === "/graph"
-            ? "text-black border-b-2 border-black"
+            ? "text-white border-b-2 "
             : "text-gray-500"
         }`}
       >

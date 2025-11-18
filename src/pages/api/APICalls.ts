@@ -31,7 +31,6 @@ export interface CveApiResponse extends Stats {
   cveChanges: CveChangeWrapper[];
 }
 
-
 export interface PaginatedChangeRecord {
   change: any;
   id: number;
@@ -42,9 +41,6 @@ export interface PaginatedChangeRecord {
   created: string;
   details: any[];
 }
-
-
-
 
 export interface PaginatedApiResponse {
   resultsPerPage: number;
@@ -57,8 +53,6 @@ export interface PaginatedApiResponse {
   isSearchResult?: boolean;
   isFilterResult?: boolean;
 }
-
-
 
 /* ----------------------------------------------------
    🔹 GET ONE — /cvechanges/{id}/
@@ -93,14 +87,13 @@ export const getAllCveChanges = async (): Promise<CveApiResponse> => {
 /* ----------------------------------------------------
    🔹 UPDATE — /cvechanges/update/{id}/
 ---------------------------------------------------- */
-export const updateCveChange = async (
-  id: number,
-  payload: Partial<ChangeRecord>
-) => {
+
+export const updateCveChange = async (id: number, payload: any) => {
   const response = await axios.put(
     `${API_BASE}/cvechanges/update/${id}/`,
     payload
   );
+  
   return response.data;
 };
 
@@ -108,13 +101,10 @@ export const updateCveChange = async (
    🔹 DELETE — /cvechanges/delete/{id}
 ---------------------------------------------------- */
 export const deleteCveChange = async (id: number) => {
-  const response = await axios.delete(`${API_BASE}/cvechanges/delete/${id}`);
+  const response = await axios.delete(`${API_BASE}/cvechanges/delete/${id}/`);
+
   return response.data;
 };
-
-
-
-
 
 /* ----------------------------------------------------
    🔹 PAGINATED — /cvechanges/paginated/?resultsPerPage=${resultsPerPage}&startIndex=${startIndex}/{id}
@@ -130,8 +120,6 @@ export const getPaginatedCveChanges = async (
   return response.data;
 };
 
-
-
 /* ----------------------------------------------------
    🔹 SEARCH — /cvechanges/search/?query=xxxx
 ---------------------------------------------------- */
@@ -146,9 +134,6 @@ export const searchCveChanges = async (
 
   return response.data;
 };
-
-
-
 
 /* ----------------------------------------------------
    🔹 FILTER — /cvechanges/filter/?event=...&startDate=...&endDate=...
@@ -166,7 +151,7 @@ export const filterCveChanges = async (
 
   // append events as repeated 'event' params
   // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
-    events.forEach((e) => params.append("event", e));
+  events.forEach((e) => params.append("event", e));
 
   if (startDate) params.set("startDate", startDate);
   if (endDate) params.set("endDate", endDate);

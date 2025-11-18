@@ -7,6 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa6";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 interface Column {
   id: string;
@@ -29,7 +30,10 @@ interface CveTableProps {
   onPageChange: (event: unknown, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 
-  onOpenDetails: (details: any[]) => void; // <-- IMPORTANT
+  onOpenDetails: (details: any[]) => void;
+
+  onEditRecord: (id: number) => void;
+  onDeleteRecord: (id: number, cveId: string) => void;
 }
 
 export default function CveTable({
@@ -47,6 +51,9 @@ export default function CveTable({
   onRowsPerPageChange,
 
   onOpenDetails,
+
+  onEditRecord,
+  onDeleteRecord,
 }: CveTableProps) {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", minHeight: 600 }}>
@@ -63,7 +70,6 @@ export default function CveTable({
                 >
                   <div className="flex items-center gap-1">
                     {col.label}
-
                     {sortColumn === col.id ? (
                       sortOrder === "asc" ? (
                         <FaSortUp className="text-blue-600" />
@@ -76,24 +82,30 @@ export default function CveTable({
                   </div>
                 </TableCell>
               ))}
+
+              <TableCell align="center" style={{ minWidth: 80 }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {filteredData.length ? (
               filteredData.map((row) => (
-                <TableRow hover key={row.cveChangeId}>
+                <TableRow hover key={row.id}>
                   {columns.map((column) => {
                     const value = row[column.id];
 
-                    // Handle DETAILS column
-                    if (column.id === "details") {
-                      const hasDetails =
-                        Array.isArray(value) && value.length > 0;
-
-                      return (
-                        <TableCell key={column.id}>
-                          {hasDetails ? (
+                    return (
+                      <TableCell key={column.id} align={column.align}>
+                        {column.id === "created" ? (
+                          new Date(value).toLocaleString()
+                        ) : column.id === "details" ? (
+                          Array.isArray(value) && value.length === 0 ? (
+                            "No Data"
+                          ) : value && Object.keys(value).length === 0 ? (
+                            "No Data"
+                          ) : (
                             <button
                               type="button"
                               className="text-blue-600 underline"
@@ -101,26 +113,32 @@ export default function CveTable({
                             >
                               View
                             </button>
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                      );
-                    }
-
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.id === "created"
-                          ? new Date(value).toLocaleString()
-                          : String(value)}
+                          )
+                        ) : (
+                          String(value)
+                        )}
                       </TableCell>
                     );
                   })}
+
+                  <TableCell align="center">
+                    <div className="flex justify-center gap-4 text-lg">
+                      <FaEdit
+                        className="text-blue-600 cursor-pointer hover:scale-110"
+                        onClick={() => onEditRecord(row)}
+                      />
+
+                      <FaTrash
+                        className="text-red-600 cursor-pointer hover:scale-110"
+                        onClick={() => onDeleteRecord(row.id, row.cveId)}
+                      />
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
+                <TableCell colSpan={columns.length + 1} align="center">
                   No records found
                 </TableCell>
               </TableRow>
@@ -130,7 +148,7 @@ export default function CveTable({
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[10, 25, 50, 100 , 500]}
+        rowsPerPageOptions={[10, 25, 50, 100, 500]}
         component="div"
         count={totalResults}
         rowsPerPage={rowsPerPage}
