@@ -14,7 +14,7 @@
     return (
       <div className={inter.className}>
         <Navbar />
-        <Component {...pageProps} />
+        <Component {...pageProps}  />
       </div>
     );
   }

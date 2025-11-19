@@ -148,7 +148,7 @@ export default function CveTable({
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[10, 25, 50, 100, 500]}
+        rowsPerPageOptions={[10, 25, 50, 100, 500, 1000, 2500 , 5000]}
         component="div"
         count={totalResults}
         rowsPerPage={rowsPerPage}

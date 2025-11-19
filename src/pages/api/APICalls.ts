@@ -93,7 +93,7 @@ export const updateCveChange = async (id: number, payload: any) => {
     `${API_BASE}/cvechanges/update/${id}/`,
     payload
   );
-  
+
   return response.data;
 };
 
@@ -217,4 +217,71 @@ export const exportCveChangesToExcel = async (
     alert("Failed to export Excel file");
     return false;
   }
+};
+
+
+
+
+
+/* ----------------------------------------------------
+   🔹 PIE CHART DATA — /cvechanges/event-counts/
+---------------------------------------------------- */
+export interface PieChartDataResponse {
+  timestamp: string;
+  data: Record<string, number>;
+}
+
+export const getPieChartData = async (): Promise<PieChartDataResponse> => {
+  const response = await axios.get(`${API_BASE}/cvechanges/event-counts/`);
+  console.log("Pie Chart Data:", response.data);
+  return response.data;
+};
+
+/* ----------------------------------------------------
+   🔹 TABLE DATA — /cvechanges/cve-dashboard/
+---------------------------------------------------- */
+export interface CveProcessedItem {
+  new_cve_received: number;
+  new_cve_analyzed: number;
+  modified_cve_received: number;
+  modified_cve_reanalyzed: number;
+}
+
+export interface TableStatsResponse {
+  timestamp: string;
+  cve_processed: {
+    today: CveProcessedItem;
+    this_week: CveProcessedItem;
+    this_month: CveProcessedItem;
+    last_month: CveProcessedItem;
+    this_year: CveProcessedItem;
+  };
+  cve_status_counts: Record<string, number>;
+}
+
+export const getTableStats = async (): Promise<TableStatsResponse> => {
+  const response = await axios.get(`${API_BASE}/cvechanges/cve-dashboard/`);
+  console.log("Table Summary Data:", response.data);
+  return response.data; // <-- CORRECT
+};
+
+
+
+
+
+
+export interface CveGrowthItem {
+  year: number;
+  count: number;
+}
+
+export interface CveGrowthResponse {
+  timestamp: string;
+  growth: CveGrowthItem[];
+}
+
+export const getCveGrowthTrend = async (): Promise<CveGrowthResponse> => {
+  const response = await axios.get(`${API_BASE}/cvechanges/growth/`);
+  console.log("CVE Growth Trend:", response.data);
+  return response.data;
 };

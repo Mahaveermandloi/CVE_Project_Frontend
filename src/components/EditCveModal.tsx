@@ -118,7 +118,7 @@ export default function EditCveModal({
     errors.created !== "";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex justify-center items-center  m-4">
       <div className="bg-white p-6 rounded shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4">Edit CVE Record</h2>
         {/* ---------- ID (Read Only) ---------- */}
@@ -192,6 +192,10 @@ export default function EditCveModal({
         />
         {jsonError && <p className="text-red-600 text-sm mb-2">{jsonError}</p>}
         {/* BUTTONS */}
+       
+       
+       
+       
         <div className="flex justify-end gap-3 mt-4">
           <button
             type="button"
@@ -231,6 +235,11 @@ export default function EditCveModal({
             Save
           </button>
         </div>
+        
+
+
+
+
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ export default function DeleteCveModal({
   };
 
   return (
-    <div className="fixed inset-0  bg-opacity-40 flex justify-center items-center">
+    <div className="fixed inset-0  z-10 shadow-xl bg-opacity-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded shadow-xl w-[350px]">
         <h2 className="text-lg font-bold mb-3">Confirm Delete ?</h2>
 

@@ -47,6 +47,7 @@ export default function FilterModal({
   const [startDate, setStartDate] = useState<string>(initialStartDate || "");
   const [endDate, setEndDate] = useState<string>(initialEndDate || "");
 
+  // Reset modal values when opened
   useEffect(() => {
     if (open) {
       setSelectedEvents(initialEvents);
@@ -86,14 +87,21 @@ export default function FilterModal({
 
     onClose();
   };
+
+  // 🔥 Validation — disable Apply when no filters selected
+  const noFiltersSelected =
+    selectedEvents.length === 0 &&
+    startDate.trim() === "" &&
+    endDate.trim() === "";
+
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-start pt-20">
-      <div className="bg-white rounded-lg shadow-lg w-[720px] p-6">
+      <div className="bg-white rounded-lg shadow-lg w-[720px] p-6 mb-10 lg:m-0">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="lg:grid grid-cols-2 gap-6">
           {/* Event Filter */}
           <div>
             {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -141,15 +149,11 @@ export default function FilterModal({
                 />
               </div>
             </div>
-
-            <p className="text-xs text-gray-500 mt-2">
-              If only start date is selected, filter will apply for that single
-              day.
-            </p>
           </div>
         </div>
 
-        <div className="mt-4 flex justify-between items-center ">
+        {/* Footer Buttons */}
+        <div className="mt-4 flex justify-between items-center">
           <button
             type="button"
             className="px-4 py-2 rounded border bg-gray-200"
@@ -158,8 +162,7 @@ export default function FilterModal({
             Clear Filters
           </button>
 
-          {/* Buttons */}
-          <div className="flex  gap-3 ">
+          <div className="flex gap-3">
             <button
               type="button"
               className="px-4 py-2 rounded border"
@@ -170,7 +173,12 @@ export default function FilterModal({
 
             <button
               type="button"
-              className="px-4 py-2 rounded bg-blue-600 text-white"
+              disabled={noFiltersSelected}
+              className={`px-4 py-2 rounded text-white ${
+                noFiltersSelected
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
               onClick={apply}
             >
               Apply

@@ -54,7 +54,7 @@ export default function Dashboard() {
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(500);
+  const [rowsPerPage, setRowsPerPage] = useState(2500);
   const [loading, setLoading] = useState(false);
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -223,19 +223,27 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="px-6 py-2  bg-white text-black relative">
+    <div className="px-2 lg:px-6 py-2  bg-white text-black relative">
       {/* HEADER */}
-      <div className="flex mb-4 flex-col md:flex-row justify-between items-center gap-4">
+      <div className="flex mb-4  flex-col md:flex-row justify-between lg:items-center gap-4">
+       
         <div>
-          <h1 className="text-2xl font-semibold">Transactions Table</h1>
+          <h1 className="text-xl lg:text-2xl font-semibold">
+           Common Vulnerabilities and Exposures
+            </h1>
           <p className="text-sm text-gray-500">
-            These are details about the last transactions
+            These are details about the last incidents
           </p>
         </div>
 
         {/* ⬇️ SEARCH BOX MOVED TO SEPARATE COMPONENT */}
 
-        <SearchBox
+       
+
+
+        <div className="">
+         
+           <SearchBox
           search={search}
           setSearch={setSearch}
           onSearchClick={handleSearchClick}
@@ -249,7 +257,10 @@ export default function Dashboard() {
           startDate={filterCriteria.startDate}
           endDate={filterCriteria.endDate}
         />
+        </div>
       </div>
+
+      
 
       {/* TABLE */}
       <CveTable
