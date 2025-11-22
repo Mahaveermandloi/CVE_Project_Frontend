@@ -14,6 +14,17 @@ export interface ChangeRecord {
   details: any[];
 }
 
+export interface SearchOption {
+  id: number;
+  eventName: string;
+}
+
+export interface SearchOptionsResponse {
+  timestamp: string;
+  total: number;
+  limit: number;
+  data: SearchOption[];
+}
 export interface CveChangeWrapper {
   change: ChangeRecord;
 }
@@ -25,6 +36,15 @@ export interface Stats {
   format: string;
   version: string;
   timestamp: string;
+}
+
+export interface CreateCveChangePayload {
+  cveId: string;
+  eventName: string;
+  sourceIdentifier: string;
+  cveChangeId?: string;
+  created: string; // ISO date string, e.g., "2025-11-20T00:00:00Z"
+  details?: any[]; // optional
 }
 
 export interface CveApiResponse extends Stats {
@@ -219,9 +239,30 @@ export const exportCveChangesToExcel = async (
   }
 };
 
+export const createCveChange = async (payload: CreateCveChangePayload) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE}/cvechanges/create/`,
+      payload
+    );
 
-
-
+    if (response.status === 200 || response.status === 201) {
+      // Success
+      alert("CVE record created successfully!");
+      console.log("Created CVE Change:", response.data);
+      return response.data;
+    } else {
+      // Any other HTTP code
+      console.error("Failed to create CVE change, status:", response.status);
+      alert("Failed to create CVE record!");
+      return null;
+    }
+  } catch (err) {
+    console.error("Failed to create CVE change:", err);
+    alert("Failed to create CVE record!");
+    throw err;
+  }
+};
 
 /* ----------------------------------------------------
    🔹 PIE CHART DATA — /cvechanges/event-counts/
@@ -265,11 +306,6 @@ export const getTableStats = async (): Promise<TableStatsResponse> => {
   return response.data; // <-- CORRECT
 };
 
-
-
-
-
-
 export interface CveGrowthItem {
   year: number;
   count: number;
@@ -284,4 +320,64 @@ export const getCveGrowthTrend = async (): Promise<CveGrowthResponse> => {
   const response = await axios.get(`${API_BASE}/cvechanges/growth/`);
   console.log("CVE Growth Trend:", response.data);
   return response.data;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface EventOption {
+  id: number;
+  eventName: string;
+}
+
+export interface CreateEventResult {
+  success: boolean;
+  data?: EventOption | any;
+  message?: string;
+}
+
+
+export const getEventOptions = async () => {
+  const url = `${API_BASE}/event-options/`;
+  const response = await axios.get(url);
+  console.log("this is my response:", response);
+  const data = response.data;
+  return data;
+};
+
+
+// ---------- CREATE new event option ----------
+export const createEventOption = async (
+  eventName: string
+): Promise<CreateEventResult> => {
+  try {
+    const url = `${API_BASE}/event-options/create/`;
+    const response = await axios.post(url, { eventName });
+
+    return {
+      success: true,
+      data: response.data, // includes {id, eventName, message}
+    };
+  } catch (err: any) {
+    if (err.response) {
+      return {
+        success: false,
+        message: err.response.data?.error || "Something went wrong",
+      };
+    }
+
+    return { success: false, message: err.message };
+  }
 };

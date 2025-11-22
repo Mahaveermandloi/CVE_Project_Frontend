@@ -9,7 +9,7 @@ export default function Navbar() {
     <nav className="flex gap-5 p-4 bg-[#01308b]  ">
       <Link
         href="/dashboard"
-        className={`text-lg pb-1 ${
+        className={` lg:text-lg pb-1 ${
           current === "/dashboard"
             ? "text-white border-b-2 font-bold "
             : "text-gray-500"
@@ -20,7 +20,7 @@ export default function Navbar() {
 
       <Link
         href="/graph"
-        className={`text-lg pb-1 ${
+        className={`lg:text-lg pb-1 ${
           current === "/graph"
             ? "text-white border-b-2 "
             : "text-gray-500"

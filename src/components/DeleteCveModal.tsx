@@ -1,12 +1,5 @@
 import { deleteCveChange } from "../pages/api/APICalls";
 
-// interface DeleteCveModalProps {
-//   open: boolean;
-//   id: number | null;
-//   onClose: () => void;
-//   onDeleted: () => void;
-// }
-
 interface DeleteCveModalProps {
   open: boolean;
   id: number | null;

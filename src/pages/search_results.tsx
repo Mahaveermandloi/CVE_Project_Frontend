@@ -1,3 +1,4 @@
+// pages/search_result.tsx
 import { useEffect, useState } from "react";
 import {
   getPaginatedCveChanges,
@@ -9,12 +10,13 @@ import {
 import DetailsModal from "@/components/DetailsModal";
 import { useRouter } from "next/router";
 
+import FilterBox from "../components/FilterBox";
+
 import Loader from "../components/Loader";
 import CveTable from "../components/CveTable";
 import SearchBox from "../components/SearchBox";
 import EditCveModal from "@/components/EditCveModal";
-import DeleteCveModal from "../components/DeleteCveModal";
-import FilterBox from "../components/FilterBox";
+import DeleteCveModal from "@/components/DeleteCveModal";
 
 interface Column {
   id:
@@ -24,7 +26,7 @@ interface Column {
     | "sourceIdentifier"
     | "created"
     | "details"
-    | "actions"; // <-- NEW
+    | "actions";
   label: string;
   minWidth?: number;
   align?: "right";
@@ -37,42 +39,28 @@ const columns: Column[] = [
   { id: "sourceIdentifier", label: "Source", minWidth: 150 },
   { id: "created", label: "Created", minWidth: 150 },
   { id: "details", label: "Details", minWidth: 150 },
-  // <-- NEW
 ];
 
 type SortOrder = "asc" | "desc" | null;
 
-const EVENT_OPTIONS = [
-  "CVE Received",
-  "Initial Analysis",
-  "Reanalysis",
-  "CVE Modified",
-  "Modified Analysis",
-  "CVE Translated",
-  "Vendor Comment",
-  "CVE Source Update",
-  "CPE Deprecation Remap",
-  "CWE Remap",
-  "Reference Tag Update",
-  "CVE Rejected",
-  "CVE Unrejected",
-  "CVE CISA KEV Update",
-];
-
-export default function Dashboard() {
+export default function SearchResultPage() {
   const router = useRouter();
+  const { q } = router.query;
 
-  const [editId, setEditId] = useState<number | null>(null);
   const [editRecord, setEditRecord] = useState<any | null>(null);
-
   const [deleteInfo, setDeleteInfo] = useState<{
     id: number | null;
     cveId: string | null;
-  }>({ id: null, cveId: null });
+  }>({
+    id: null,
+    cveId: null,
+  });
 
   const [apiData, setApiData] = useState<PaginatedApiResponse | null>(null);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>(
+    (typeof q === "string" && q) || ""
+  );
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(100);
   const [loading, setLoading] = useState(false);
@@ -83,14 +71,7 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDetails, setModalDetails] = useState<any[]>([]);
 
-  // FILTER SIDEBAR STATE (moved from modal)
-  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const [dateError, setDateError] = useState<string>("");
-
-  const today = new Date().toISOString().split("T")[0];
-
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterCriteria, setFilterCriteria] = useState<{
     events: string[];
     startDate?: string;
@@ -102,77 +83,103 @@ export default function Dashboard() {
     setModalOpen(true);
   };
 
-  // Fetch initial data
+  // When the query param q changes, update local search and load data
+
   useEffect(() => {
-    const startIndex = currentPage * rowsPerPage;
-    setLoading(true);
+    if (!router.isReady) return;
+    const query = typeof router.query.q === "string" ? router.query.q : "";
+    setSearch(query);
+    setCurrentPage(0);
+    setSortColumn(null);
+    setSortOrder(null);
 
-    getPaginatedCveChanges(rowsPerPage, startIndex)
-      .then((res) => setApiData(res))
-      .finally(() => setLoading(false));
-  }, [currentPage, rowsPerPage]);
+    if (!query.trim()) {
+      setApiData(null);
+      return;
+    }
 
-  const fetchData = async () => {
-    const startIndex = currentPage * rowsPerPage;
-    setLoading(true);
-
-    try {
-      // If filtered
-      if (apiData?.isFilterResult) {
-        const res = await filterCveChanges(
-          filterCriteria.events,
-          filterCriteria.startDate,
-          filterCriteria.endDate,
-          rowsPerPage,
-          startIndex
-        );
-        setApiData({ ...res, isFilterResult: true });
-        return;
-      }
-
-      // If searching
-      if (apiData?.isSearchResult) {
-        const res = await searchCveChanges(search, rowsPerPage, startIndex);
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await searchCveChanges(query, rowsPerPage, 0);
         setApiData({ ...res, isSearchResult: true });
-        return;
+      } catch (err) {
+        console.error("Failed to load search results", err);
+        setApiData(null);
+      } finally {
+        setLoading(false);
       }
+    })();
+  }, [router.isReady, router.query.q, rowsPerPage]);
 
-      // Default — normal pagination
+  const loadSearchData = async (page: number, queryStr?: string) => {
+    const startIndex = page * rowsPerPage;
+    setLoading(true);
+    try {
+      const qToUse = queryStr ?? search;
+      const res = await searchCveChanges(qToUse, rowsPerPage, startIndex);
+      setApiData({ ...res, isSearchResult: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadPageData = async (page: number) => {
+    const startIndex = page * rowsPerPage;
+    setLoading(true);
+    try {
       const res = await getPaginatedCveChanges(rowsPerPage, startIndex);
-      setApiData(res);
+      setApiData({ ...res, isSearchResult: false });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearchClick = async () => {
-    setCurrentPage(0);
-
-    // 🔥 RESET SORTING WHEN SEARCHING
-    setSortColumn(null);
-    setSortOrder(null);
-
+    // navigate to same page with q param (this will trigger useEffect and load search)
     if (!search.trim()) {
-      loadPageData(0);
+      router.push("/search_result");
       return;
     }
-
-    loadSearchData(0);
+    router.push(`/search_result?q=${encodeURIComponent(search.trim())}`);
   };
 
-  const loadPageData = async (page: number) => {
-    const startIndex = page * rowsPerPage;
+  const handleApplyFilter = async (payload: {
+    events: string[];
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    setCurrentPage(0);
+    setSortColumn(null);
+    setSortOrder(null);
+    setFilterCriteria(payload);
     setLoading(true);
-    const res = await getPaginatedCveChanges(rowsPerPage, startIndex);
-    setApiData({ ...res, isSearchResult: false });
+
+    const res = await filterCveChanges(
+      payload.events,
+      payload.startDate,
+      payload.endDate,
+      rowsPerPage,
+      0
+    );
+
+    setApiData({ ...res, isFilterResult: true });
     setLoading(false);
   };
 
-  const loadSearchData = async (page: number) => {
+  const loadFilteredData = async (page: number) => {
     const startIndex = page * rowsPerPage;
     setLoading(true);
-    const res = await searchCveChanges(search, rowsPerPage, startIndex);
-    setApiData({ ...res, isSearchResult: true });
+
+    const res = await filterCveChanges(
+      filterCriteria.events,
+      filterCriteria.startDate,
+      filterCriteria.endDate,
+      rowsPerPage,
+      startIndex
+    );
+
+    setApiData({ ...res, isFilterResult: true });
     setLoading(false);
   };
 
@@ -180,7 +187,7 @@ export default function Dashboard() {
     apiData?.data
       ?.filter((item) =>
         columns
-          .filter((col) => col.id !== "actions") // ⬅ prevent indexing error
+          .filter((col) => col.id !== "actions")
           .some((col) =>
             String(item[col.id as keyof PaginatedChangeRecord])
               .toLowerCase()
@@ -210,93 +217,8 @@ export default function Dashboard() {
           : -1;
       }) || [];
 
-  // Reuse your existing handler but update local filterCriteria state first
-  const handleApplyFilter = async (payload: {
-    events: string[];
-    startDate?: string;
-    endDate?: string;
-  }) => {
-    setCurrentPage(0);
-    setSortColumn(null);
-    setSortOrder(null);
-    setFilterCriteria(payload);
-    setLoading(true);
-
-    const res = await filterCveChanges(
-      payload.events,
-      payload.startDate,
-      payload.endDate,
-      rowsPerPage,
-      0
-    );
-
-    setApiData({ ...res, isFilterResult: true }); // IMPORTANT
-    setLoading(false);
-  };
-
-  // local toggles & validation for sidebar
-  const toggleEvent = (ev: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(ev) ? prev.filter((p) => p !== ev) : [...prev, ev]
-    );
-  };
-
-  const validateDates = (newStart: string, newEnd: string) => {
-    if (newStart && newStart > today) {
-      setDateError("Start date cannot be in the future.");
-      return;
-    }
-
-    if (newEnd && newEnd > today) {
-      setDateError("End date cannot be greater than today's date.");
-      return;
-    }
-
-    if (newStart && newEnd && newEnd < newStart) {
-      setDateError("End date cannot be earlier than Start date.");
-      return;
-    }
-
-    setDateError("");
-  };
-
-  const handleStartChange = (value: string) => {
-    setStartDate(value);
-    validateDates(value, endDate);
-  };
-
-  const handleEndChange = (value: string) => {
-    setEndDate(value);
-    validateDates(startDate, value);
-  };
-
-  const applyFiltersFromSidebar = () => {
-    // if startDate exists and endDate empty, set endDate = startDate (same behaviour as modal)
-    const finalEnd = startDate && !endDate ? startDate : endDate || undefined;
-    const payload = {
-      events: selectedEvents,
-      startDate: startDate || undefined,
-      endDate: finalEnd,
-    };
-    // update UI state for current filters and call handler that does network call
-    setFilterCriteria(payload);
-    handleApplyFilter(payload);
-  };
-
-  const clearFiltersFromSidebar = () => {
-    setSelectedEvents([]);
-    setStartDate("");
-    setEndDate("");
-    setDateError("");
-    setFilterCriteria({ events: [] });
-    // propagate to server/list
-    handleApplyFilter({ events: [], startDate: undefined, endDate: undefined });
-  };
-
   return (
-    <div className="px-2 lg:px-6 py-2   bg-gray-200 text-black relative">
-      {/* HEADER */}
-     
+    <div className="px-2 lg:px-6 py-2 bg-white text-black relative">
       <div className="flex mb-4   flex-col md:flex-row justify-between lg:items-center gap-4">
         <div>
           <h1 className="text-lg lg:text-2xl font-semibold">
@@ -381,7 +303,6 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* LOADER */}
       {loading && (
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-white/20 backdrop-blur-xs">
           <Loader />
@@ -394,7 +315,12 @@ export default function Dashboard() {
         onClose={() => setEditRecord(null)}
         onSaved={async () => {
           setEditRecord(null);
-          await fetchData();
+          // refresh
+          if (apiData?.isSearchResult) {
+            await loadSearchData(currentPage);
+          } else {
+            await loadPageData(currentPage);
+          }
         }}
       />
 
@@ -403,13 +329,11 @@ export default function Dashboard() {
         id={deleteInfo.id}
         cveId={deleteInfo.cveId}
         onClose={() => setDeleteInfo({ id: null, cveId: null })}
-        onDeleted={async () => {
+        onDeleted={() => {
           setDeleteInfo({ id: null, cveId: null });
           alert("Record Deleted Successfully");
-          // 🔥 Redirect to /dashboard
-          router.push("/dashboard");
-          // Optional: Refresh data as well (if you stay on page)
-          await fetchData();
+          // go back to search page (keeps same url)
+          router.push("/search_result");
         }}
       />
 
